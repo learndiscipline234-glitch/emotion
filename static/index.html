@@ -1,13 +1,219 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#04060d" />
+  <meta name="description" content="EmotionAI detects emotion in text in real time using a BiGRU deep learning model." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💎</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet" />
+  <!-- FastAPI serves this page at "/" and mounts the folder at "/static" -->
+  <link rel="stylesheet" href="/static/style.css" />
+  <title>EmotionAI — Understand the Emotion Behind Your Words</title>
 </head>
 <body>
-    <h!> laude 
-        
-    </h>
+  <!-- Crystal background -->
+  <div class="bg" aria-hidden="true">
+    <span class="beam"></span>
+    <span class="blob blob-1"></span>
+    <span class="blob blob-2"></span>
+    <span class="blob blob-3"></span>
+    <span class="shard shard-1"></span>
+    <span class="shard shard-2"></span>
+    <span class="shard shard-3"></span>
+    <span class="shard shard-4"></span>
+  </div>
+
+  <!-- Navbar -->
+  <header class="nav-wrap">
+    <nav class="nav crystal">
+      <a href="#home" class="logo">
+        <svg class="logo-gem" viewBox="0 0 200 190" aria-hidden="true">
+          <defs>
+            <linearGradient id="logoG" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#7ee7ff" /><stop offset=".55" stop-color="#b79cff" /><stop offset="1" stop-color="#ff9ad5" />
+            </linearGradient>
+          </defs>
+          <polygon points="55,38 145,38 180,78 100,172 20,78" fill="url(#logoG)" />
+          <g fill="none" stroke="rgba(255,255,255,.75)" stroke-width="5" stroke-linejoin="round">
+            <polygon points="55,38 145,38 180,78 100,172 20,78" />
+            <path d="M20 78H180M70 78L55 38M130 78L145 38M70 78L100 172L130 78" />
+          </g>
+        </svg>
+        EmotionAI
+      </a>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#home">Home</a></li>
+        <li><a href="#analyzer">Analyzer</a></li>
+        <li><a href="#how-it-works">How It Works</a></li>
+        <li><a href="#technology">Technology</a></li>
+      </ul>
+      <div class="nav-right">
+        <span class="status" role="status">
+          <span class="dot checking" id="apiDot"></span>
+          <span id="apiText">Checking API…</span>
+        </span>
+        <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu" aria-expanded="false">☰</button>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Hero + analyzer -->
+    <section id="home" class="hero container">
+      <div class="hero-text rise">
+        <span class="badge crystal">⚡ Powered by BiGRU + Deep Learning</span>
+        <h1>Understand the Emotion Behind Your Words</h1>
+        <p class="sub">AI-powered emotion detection using a BiGRU deep learning model.</p>
+      </div>
+
+      <div id="analyzer" class="workspace rise" style="animation-delay:.15s">
+        <!-- Input -->
+        <div class="panel crystal input-panel">
+          <label for="textInput" class="sr-only">Text to analyze</label>
+          <textarea id="textInput" rows="6" maxlength="2000"
+            placeholder="Type something like: I am really excited about today..."></textarea>
+
+          <div class="meta">
+            <span class="hint">Press Ctrl + Enter to analyze</span>
+            <span id="counter">0 / 2000</span>
+          </div>
+
+          <div class="actions">
+            <button id="analyzeBtn" class="btn-primary" type="button" disabled>
+              <span class="spinner" id="spinner" hidden></span>
+              <span id="analyzeLabel">✨ Analyze Emotion</span>
+            </button>
+            <button id="clearBtn" class="btn-ghost" type="button" disabled>↺ Clear</button>
+          </div>
+
+          <div class="chips" aria-label="Sample texts">
+            <button type="button" class="chip">I'm feeling amazing today!</button>
+            <button type="button" class="chip">I am scared about tomorrow.</button>
+            <button type="button" class="chip">I miss someone very much.</button>
+            <button type="button" class="chip">This situation makes me angry.</button>
+            <button type="button" class="chip">I don't know what is going to happen.</button>
+          </div>
+
+          <p class="slow-note" id="slowNote" role="status" hidden>
+            Still working — the server may be waking up. This can take up to a minute on the first request.
+          </p>
+          <div class="error" id="errorBox" role="alert" hidden>
+            <span aria-hidden="true">⚠️</span><span id="errorText"></span>
+          </div>
+        </div>
+
+        <!-- Crystal stage -->
+        <div class="panel crystal stage" id="stage" data-state="idle" aria-live="polite">
+          <div class="gem-wrap">
+            <svg class="ring" viewBox="0 0 260 260" aria-hidden="true">
+              <circle class="ring-track" cx="130" cy="130" r="122" />
+              <circle class="ring-spin" cx="130" cy="130" r="122" pathLength="100" />
+              <circle class="ring-fill" cx="130" cy="130" r="122" pathLength="100" />
+            </svg>
+
+            <div class="gem-body">
+              <svg class="gem" viewBox="0 0 200 190" aria-hidden="true">
+                <defs>
+                  <clipPath id="gemClip"><polygon points="55,38 145,38 180,78 100,172 20,78" /></clipPath>
+                  <linearGradient id="prism" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#7ee7ff" /><stop offset=".5" stop-color="#b79cff" /><stop offset="1" stop-color="#ff9ad5" />
+                  </linearGradient>
+                  <linearGradient id="sheen" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#fff" stop-opacity=".6" />
+                    <stop offset=".5" stop-color="#fff" stop-opacity="0" />
+                    <stop offset="1" stop-color="#fff" stop-opacity=".22" />
+                  </linearGradient>
+                  <linearGradient id="band" x1="0" x2="1">
+                    <stop offset="0" stop-color="#fff" stop-opacity="0" />
+                    <stop offset=".5" stop-color="#fff" stop-opacity=".75" />
+                    <stop offset="1" stop-color="#fff" stop-opacity="0" />
+                  </linearGradient>
+                </defs>
+                <g class="facets">
+                  <polygon class="f" style="--o:.30" points="20,78 55,38 70,78" />
+                  <polygon class="f" style="--o:.12" points="55,38 145,38 130,78 70,78" />
+                  <polygon class="f" style="--o:.34" points="145,38 180,78 130,78" />
+                  <polygon class="f" style="--o:.46" points="20,78 70,78 100,172" />
+                  <polygon class="f" style="--o:.22" points="70,78 100,78 100,172" />
+                  <polygon class="f" style="--o:.38" points="100,78 130,78 100,172" />
+                  <polygon class="f" style="--o:.56" points="130,78 180,78 100,172" />
+                </g>
+                <polygon class="prism-layer" points="55,38 145,38 180,78 100,172 20,78" fill="url(#prism)" />
+                <polygon points="55,38 145,38 180,78 100,172 20,78" fill="url(#sheen)" />
+                <g clip-path="url(#gemClip)"><rect class="sweep" x="-70" y="-10" width="44" height="220" fill="url(#band)" /></g>
+                <polygon class="outline" points="55,38 145,38 180,78 100,172 20,78" />
+              </svg>
+              <span class="gem-emoji" id="gemEmoji" aria-hidden="true"></span>
+            </div>
+          </div>
+
+          <div class="stage-text">
+            <p class="stage-label" id="stageLabel"></p>
+            <h2 class="stage-name" id="stageName">Awaiting your text</h2>
+            <p class="stage-conf" id="stageConf"></p>
+            <p class="stage-note" id="stageNote">Your result will form here.</p>
+          </div>
+        </div>
+
+        <!-- Probabilities -->
+        <div class="panel crystal spectrum" id="spectrum" hidden>
+          <h3>All emotion probabilities</h3>
+          <ul class="bars" id="bars"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- How it works -->
+    <section id="how-it-works" class="container section">
+      <h2>How It Works</h2>
+      <div class="grid-3">
+        <article class="crystal tile">
+          <span class="facet-icon">📝</span>
+          <h3>Text Processing</h3>
+          <p>Clean and preprocess the user's text.</p>
+        </article>
+        <article class="crystal tile">
+          <span class="facet-icon">🧬</span>
+          <h3>BiGRU Model</h3>
+          <p>A Bidirectional GRU neural network analyzes the emotional patterns.</p>
+        </article>
+        <article class="crystal tile">
+          <span class="facet-icon">📊</span>
+          <h3>Emotion Prediction</h3>
+          <p>The model returns probabilities for six emotions.</p>
+        </article>
+      </div>
+      <ul class="facts">
+        <li>6 Emotion Classes</li>
+        <li>BiGRU Deep Learning</li>
+        <li>FastAPI Backend</li>
+        <li>Real-time Prediction</li>
+      </ul>
+    </section>
+
+    <!-- Tech -->
+    <section id="technology" class="container section narrow">
+      <h2>Technology</h2>
+      <ul class="tech">
+        <li class="crystal"><i style="--c:#60a5fa"></i>Python</li>
+        <li class="crystal"><i style="--c:#fb923c"></i>TensorFlow</li>
+        <li class="crystal"><i style="--c:#f87171"></i>Keras</li>
+        <li class="crystal"><i style="--c:#a78bfa"></i>BiGRU</li>
+        <li class="crystal"><i style="--c:#34d399"></i>FastAPI</li>
+        <li class="crystal"><i style="--c:#22d3ee"></i>NumPy</li>
+        <li class="crystal"><i style="--c:#f472b6"></i>Pydantic</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="container footer">
+    <p>EmotionAI — Deep Learning powered emotion detection.</p>
+    <p>Built with TensorFlow + FastAPI</p>
+  </footer>
+
+  <script src="/static/script.js"></script>
 </body>
 </html>
